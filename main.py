@@ -31,3 +31,4 @@ git_log = git_log.decode("utf-8").replace('"', "").split("\n")
 
 git_log = git_log[0:N]
 print(git_log)
+
