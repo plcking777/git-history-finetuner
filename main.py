@@ -1,5 +1,7 @@
 import subprocess
 import sys
+from utils import *
+
 
 N = 5
 
