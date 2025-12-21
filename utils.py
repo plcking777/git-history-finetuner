@@ -34,3 +34,19 @@ def get_file_on_hash(repo, hash, file_path):
     )
 
     return out.decode("utf-8")
+
+
+
+def get_diff(repo, prev_hash, hash):
+    #git diff <prev_hash>^..<hash>
+    out = subprocess.check_output(
+        [
+            "git",
+            "-C",
+            repo,
+            "diff",
+            f"{prev_hash}^..{hash}",
+        ]
+    )
+
+    return out.decode("utf-8")
