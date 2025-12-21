@@ -1,7 +1,7 @@
 import subprocess
 import sys
 from utils import *
-
+from diff_parser import DiffParser
 
 N = 5
 
@@ -33,4 +33,15 @@ git_log = git_log[0:N]
 print(git_log)
 
 
-print(get_diff(repo, git_log[0], git_log[1]))
+target_commit = 0
+
+diff = get_diff(repo, git_log[target_commit + 1], git_log[target_commit])
+print(diff)
+
+print("\n ----------------- ")
+
+diffParser = DiffParser(diff)
+
+
+print(diffParser.files)
+
