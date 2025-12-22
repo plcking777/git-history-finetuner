@@ -30,7 +30,8 @@ def get_file_on_hash(repo, hash, file_path):
             repo,
             "show",
             f"{hash}:{file_path}",
-        ]
+        ],
+        stderr=subprocess.STDOUT
     )
 
     return out.decode("utf-8")

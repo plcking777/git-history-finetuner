@@ -40,8 +40,9 @@ print(diff)
 
 print("\n ----------------- ")
 
-diffParser = DiffParser(diff)
+diffParser = DiffParser(repo, git_log[target_commit + 1], diff)
 
 
 print(diffParser.files)
 
+print(diffParser.parse())
