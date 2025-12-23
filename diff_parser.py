@@ -66,14 +66,12 @@ class DiffParser():
             read_current = False
             while idx < len(line):
                 c = line[idx]
-                
 
                 if read_current:
                     if c == ',':
                         break
                     else:
                         current_line_nr += c
-
 
                 if read_prev:
                     if c == ',':
@@ -82,18 +80,69 @@ class DiffParser():
                         prev_line_nr += c
                 elif prev_line_nr != "" and c == '+':
                     read_current = True
-                
-
 
                 if idx + 4 < len(line) and line[idx:idx + 4] == "@@ -":
                     idx += 4
                     read_prev = True
                     continue
-
-
                 idx += 1
 
             return DiffInfo(int(prev_line_nr), int(current_line_nr))
+
+
+
+        def find_changed_lines(diff_lines, start_idx):
+            out = dict()
+            out["added"] = []
+            out["removed"] = []
+
+            parse_info = parse_line_info(lines[start_idx])
+            line_count = parse_info.current_line_nr
+
+            idx = start_idx + 1
+
+            removedLines = False
+            
+            while idx < len(diff_lines):
+                line = diff_lines[idx]
+
+                if len(line) == 0:
+                    idx += 1
+                    continue
+                op = line[0]
+
+
+                if line[0:2] == "@@":
+                    parse_info = parse_line_info(lines[idx])
+                    if removedLines:
+                        removedLines = False
+                        out["removed"].append((line_count - 1, line_count))
+                    line_count = parse_info.current_line_nr
+                    idx += 1
+                    continue
+                elif op != " " and op != "-" and op != "+":
+                    break
+
+                if op == " ":
+                    if removedLines:
+                        removedLines = False
+                        out["removed"].append((line_count - 1, line_count))
+                    line_count += 1
+                elif op == "-":
+                    removedLines = True
+                    pass
+                elif op == "+":
+                    out["added"].append(line_count)
+                    if removedLines:
+                        removedLines = False
+                        out["removed"].append((line_count - 1, line_count))
+                    line_count += 1
+
+                idx += 1
+
+
+            return out
+
 
         out = dict()
 
@@ -110,7 +159,8 @@ class DiffParser():
                 original_file = ""
             
             diff_idx = get_diff_idx_for_file(lines, file)
-            print(parse_line_info(lines[diff_idx]))
+
+            out[file] = find_changed_lines(lines, diff_idx)
 
 
         return out

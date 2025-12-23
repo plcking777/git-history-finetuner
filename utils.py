@@ -38,15 +38,15 @@ def get_file_on_hash(repo, hash, file_path):
 
 
 
-def get_diff(repo, prev_hash, hash):
-    #git diff <prev_hash>^..<hash>
+def get_diff(repo, hash):
+    #git show <hash>
     out = subprocess.check_output(
         [
             "git",
             "-C",
             repo,
-            "diff",
-            f"{prev_hash}^..{hash}",
+            "show",
+            hash,
         ]
     )
 
