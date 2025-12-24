@@ -3,6 +3,10 @@ import sys
 from utils import *
 from diff_parser import DiffParser
 
+from compressor.main_comp import MainComp
+
+
+
 N = 2
 
 
@@ -35,12 +39,16 @@ target_commit = 0
 diff = get_diff(repo, git_log[target_commit])
 
 
-print(diff)
+diffParser = DiffParser(repo, diff)
+
+parsed_diff = diffParser.parse()
 
 
-diffParser = DiffParser(repo, git_log[target_commit + 1], diff)
 
+for file in parsed_diff.keys():
+    print(f" --------  {file}  ---------- ")
 
-print(diffParser.files)
+    file_content = get_file_on_hash(repo, git_log[target_commit], file)
 
-print(diffParser.parse())
+    print(MainComp.compress(file, file_content, parsed_diff))
+    print(" -------------------- ")

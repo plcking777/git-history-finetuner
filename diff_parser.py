@@ -36,9 +36,8 @@ class DiffParser():
         - removed lines
     """
     
-    def __init__(self, repo, prev_hash, diff):
+    def __init__(self, repo, diff):
         self.repo = repo
-        self.prev_hash = prev_hash
         self.diff = diff
         self.files = self._discover_changed_files(diff)
 
@@ -151,15 +150,7 @@ class DiffParser():
 
 
         for file in self.files:
-            try:
-                original_file = get_file_on_hash(self.repo, self.prev_hash, file)
-            except subprocess.CalledProcessError:
-                # file does not exist on this hash
-                # => meaning it is new
-                original_file = ""
-            
             diff_idx = get_diff_idx_for_file(lines, file)
-
             out[file] = find_changed_lines(lines, diff_idx)
 
 
