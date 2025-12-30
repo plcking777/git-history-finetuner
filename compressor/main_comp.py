@@ -1,4 +1,5 @@
 from compressor.language.text_comp import TextComp
+from compressor.language.xml_comp import XMLComp
 
 
 class MainComp():
@@ -8,6 +9,6 @@ class MainComp():
         if file_path.endswith(".java"):
             raise NotImplementedError("Java compress is not implemented")
         elif file_path.endswith(".xml"):
-            raise NotImplementedError("XML compress is not implemented")
+            return XMLComp.compress(file_path, file_content, parsed_diff)
         else:
             return TextComp.compress(file_path, file_content, parsed_diff)
