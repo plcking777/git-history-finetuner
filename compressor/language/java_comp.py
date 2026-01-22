@@ -39,11 +39,9 @@ class JavaComp():
 
     def parse_java(file_content):
 
+        in_comment = False  # TODO: to be implemented
+        in_str = False
         current_sentece = ""
-
-        sentence_idx = 0
-        sentences = []
-        opened_scopes = []
 
         root_sentence = Sentence(None, None)
         current_parent_sentence = root_sentence
@@ -101,47 +99,28 @@ class JavaComp():
 
                     if not in_str:
                         if c == "{":
-                            sentences.append(current_sentece + "\n")
-
-
                             new_sentence = Sentence(current_sentece + "\n", current_parent_sentence)
                             current_parent_sentence.add_child(new_sentence)
                             current_parent_sentence = new_sentence
 
-
                             current_sentece = ""
-                            opened_scopes.append(sentence_idx)
-
-                            
-                            sentence_idx += 1
                         elif c == "}":
-                            closed_idx = opened_scopes.pop()
 
-
-                            closed_sentence = sentences[closed_idx]
-                            space_count = find_first_non_space(closed_sentence)
+                            space_count = find_first_non_space(current_parent_sentence.value)
                             spaces = ""
                             for _ in range(space_count):
                                 spaces += " "
-                            sentences.append(spaces + "}\n")
-
 
                             current_parent_sentence.add_child(spaces + "}\n")  # note it is still included in the parent sentence
                             current_parent_sentence = current_parent_sentence.parent
 
-                            sentence_idx += 1
                         elif c == ";":
-                            sentences.append(current_sentece + "\n")
-
                             current_parent_sentence.add_child(current_sentece + "\n")
-
-
                             current_sentece = ""
-                            sentence_idx += 1
+                            
             if len(current_sentece) > 0 and current_sentece[-1] != "\n":
                 current_sentece += "\n"
 
 
-
-
+        return root_sentence
 
