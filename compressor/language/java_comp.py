@@ -34,7 +34,7 @@ class Sentence():
 class JavaComp():
 
     def compress(file_path: str, file_content: str, parsed_diff: dict):
-        pass
+        parsed, changed_paths = parsed_diff(file_content, )
     
 
 
@@ -50,7 +50,7 @@ class JavaComp():
 
         changed_sentence_paths = []
         current_path = []
-        sentence_idx = 0
+        sentence_idx = -1
         current_sentence_is_changed = False
         
         def is_sub_str_at(str, sub, idx):
@@ -76,7 +76,7 @@ class JavaComp():
             line = lines[line_idx]
             for idx in range(len(line)):
 
-                if line_idx in changed_line:
+                if line_idx + 1 in changed_line:
                     current_sentence_is_changed = True
         
                 c = line[idx]
@@ -107,14 +107,12 @@ class JavaComp():
 
                             sentence_idx += 1
                             current_path.append(sentence_idx)
-                            sentence_idx = 0
                             if current_sentence_is_changed:
                                 full_path = []
                                 full_path.extend(current_path)
-                                full_path.append(sentence_idx)
                                 changed_sentence_paths.append(full_path)
                                 current_sentence_is_changed = False
-                                current_sentence_is_changed = False
+                            sentence_idx = -1
 
                             current_sentece = ""
                         elif c == "}":
@@ -149,7 +147,6 @@ class JavaComp():
                                 full_path.extend(current_path)
                                 full_path.append(sentence_idx)
                                 changed_sentence_paths.append(full_path)
-                                current_sentence_is_changed = False
                                 current_sentence_is_changed = False
 
                             
