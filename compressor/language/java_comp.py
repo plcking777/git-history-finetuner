@@ -1,3 +1,4 @@
+import uuid
 
 class Sentence():
 
@@ -5,15 +6,13 @@ class Sentence():
         self.value = value
         self.parent = parent
         self.child_sentences = None
+        self.id = uuid.uuid4()
 
     def add_child(self, sentence):
         if self.child_sentences == None:
             self.child_sentences = [sentence]
         else:
             self.child_sentences.append(sentence)
-
-    def find(self, obj):
-        pass  # TODO
 
     def __repr__(self):
         out = str(self.value)
@@ -26,6 +25,8 @@ class Sentence():
     def __str__(self):
         return self.__repr__()
 
+    def __eq__(self, obj):
+        return self.value == obj.value and self.id == obj.id
 
 
 
@@ -37,7 +38,7 @@ class JavaComp():
     
 
 
-    def parse_java(file_content):
+    def parse_java(file_content, changed_line):
 
         in_comment = False  # TODO: to be implemented
         in_str = False
@@ -47,7 +48,11 @@ class JavaComp():
         current_parent_sentence = root_sentence
 
 
-
+        changed_sentence_paths = []
+        current_path = []
+        sentence_idx = 0
+        current_sentence_is_changed = False
+        
         def is_sub_str_at(str, sub, idx):
             l = len(sub)
 
@@ -67,15 +72,12 @@ class JavaComp():
         
         lines = file_content.split("\n")
 
-        for line in lines:
+        for line_idx in range(len(lines)):
+            line = lines[line_idx]
             for idx in range(len(line)):
 
-                
-                """ TODO
-                if idx in changed_line:
-                    pass
-                """
-
+                if line_idx in changed_line:
+                    current_sentence_is_changed = True
         
                 c = line[idx]
 
@@ -103,6 +105,17 @@ class JavaComp():
                             current_parent_sentence.add_child(new_sentence)
                             current_parent_sentence = new_sentence
 
+                            sentence_idx += 1
+                            current_path.append(sentence_idx)
+                            sentence_idx = 0
+                            if current_sentence_is_changed:
+                                full_path = []
+                                full_path.extend(current_path)
+                                full_path.append(sentence_idx)
+                                changed_sentence_paths.append(full_path)
+                                current_sentence_is_changed = False
+                                current_sentence_is_changed = False
+
                             current_sentece = ""
                         elif c == "}":
 
@@ -113,14 +126,36 @@ class JavaComp():
 
                             current_parent_sentence.add_child(spaces + "}\n")  # note it is still included in the parent sentence
                             current_parent_sentence = current_parent_sentence.parent
+                        
+                            sentence_idx += 1
+                            if current_sentence_is_changed:
+                                full_path = []
+                                full_path.extend(current_path)
+                                full_path.append(sentence_idx)
+                                changed_sentence_paths.append(full_path)
+                                current_sentence_is_changed = False
+                            
+                            sentence_idx = current_path.pop()
+                            
 
                         elif c == ";":
                             current_parent_sentence.add_child(current_sentece + "\n")
                             current_sentece = ""
+
+                            sentence_idx += 1
+
+                            if current_sentence_is_changed:
+                                full_path = []
+                                full_path.extend(current_path)
+                                full_path.append(sentence_idx)
+                                changed_sentence_paths.append(full_path)
+                                current_sentence_is_changed = False
+                                current_sentence_is_changed = False
+
                             
             if len(current_sentece) > 0 and current_sentece[-1] != "\n":
                 current_sentece += "\n"
 
 
-        return root_sentence
+        return root_sentence, changed_sentence_paths
 
