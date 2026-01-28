@@ -9,10 +9,30 @@ class Sentence():
         self.id = uuid.uuid4()
 
     def add_child(self, sentence):
-        if self.child_sentences == None:
-            self.child_sentences = [sentence]
+
+        if isinstance(sentence, Sentence):
+            if self.child_sentences == None:
+                self.child_sentences = [sentence]
+            else:
+                self.child_sentences.append(sentence)
+        elif isinstance(sentence, str):
+            if self.child_sentences == None:
+                self.child_sentences = [Sentence(sentence, self)]
+            else:
+                self.child_sentences.append(Sentence(sentence, self))
         else:
-            self.child_sentences.append(sentence)
+            raise ValueError("Unexpected sentence type")
+
+    def remove_child(self, sentence):
+        self.child_sentences.remove(sentence)
+        
+    def get_all_deep(self):
+        if self.child_sentences == None or len(self.child_sentences) == 0:
+            return [self]
+        out = [self]
+        for sent in self.child_sentences:
+            out.extend(sent.get_all_deep())
+        return out
 
     def __repr__(self):
         out = str(self.value)
@@ -28,17 +48,22 @@ class Sentence():
     def __eq__(self, obj):
         return self.value == obj.value and self.id == obj.id
 
+    def __hash__(self):
+        return hash(self.id)
 
 
 
 class JavaComp():
 
     def compress(file_path: str, file_content: str, parsed_diff: dict):
-        parsed, changed_paths = parsed_diff(file_content, )
-    
+        # TODO support for removed lines
+
+        parsed, changed_paths = JavaComp._parse_java(file_content, parsed_diff[file_path]["added"])
+
+        return JavaComp._remove_non_path_scopes(parsed, changed_paths)
 
 
-    def parse_java(file_content, changed_line):
+    def _parse_java(file_content, changed_line):
 
         in_comment = False  # TODO: to be implemented
         in_str = False
@@ -156,3 +181,30 @@ class JavaComp():
 
         return root_sentence, changed_sentence_paths
 
+
+
+    def _remove_non_path_scopes(root, paths: list):
+        can_be_removed = dict()
+        for sent in root.get_all_deep():
+            can_be_removed[sent] = True
+        
+        for path in paths:
+            prev_node = root
+            can_be_removed[root] = False
+            for idx in path:
+                prev_node = prev_node.child_sentences[idx]
+                can_be_removed[prev_node] = False
+        
+        def recursive_remove(root, can_be_removed):
+            if root.child_sentences == None:
+                return
+            
+            for node in root.child_sentences:
+                if can_be_removed[node]:
+                    root.remove_child(node)
+                else:
+                    recursive_remove(node, can_be_removed)
+
+        recursive_remove(root, can_be_removed)
+
+        return root
