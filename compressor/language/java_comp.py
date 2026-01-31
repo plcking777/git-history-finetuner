@@ -29,10 +29,12 @@ class Sentence():
         return out
 
     def __repr__(self):
-        out = str(self.value)
+        out = ""
+        if self.value != None:
+            out = str(self.value)
         if self.child_sentences:
             for child_sentence in self.child_sentences:
-                out += "-" + str(child_sentence)
+                out += str(child_sentence)
 
         return out
 
@@ -185,13 +187,20 @@ class JavaComp():
         for path in paths:
             prev_node = root
             can_be_removed[root] = False
-            for idx in path:
+            for path_idx in range(len(path)):
+                idx = path[path_idx]
                 prev_node = prev_node.child_sentences[idx]
                 can_be_removed[prev_node] = False
+
+                # if in a scope, make sure to also not remove the closing scope sentence
+                if len(prev_node.child_sentences) > 0:
+                    closing_scope = prev_node.child_sentences[-1]
+                    can_be_removed[closing_scope] = False
                 
 
 
-        def recursive_remove(root, can_be_removed):
+        def recursive_remove(root, can_be_removed, depth=0):
+            MAX_DEPTH = 2
             if root.child_sentences == None:
                 return
             
@@ -203,8 +212,8 @@ class JavaComp():
                         root.remove_child(node)
                         done = False
                         break
-                    else:
-                        recursive_remove(node, can_be_removed)
+                    elif depth + 1 < MAX_DEPTH:
+                        recursive_remove(node, can_be_removed, depth + 1)
 
         recursive_remove(root, can_be_removed)
         
