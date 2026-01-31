@@ -5,21 +5,15 @@ class Sentence():
     def __init__(self, value, parent):
         self.value = value
         self.parent = parent
-        self.child_sentences = None
+        self.child_sentences = []
         self.id = uuid.uuid4()
 
     def add_child(self, sentence):
 
         if isinstance(sentence, Sentence):
-            if self.child_sentences == None:
-                self.child_sentences = [sentence]
-            else:
-                self.child_sentences.append(sentence)
+            self.child_sentences.append(sentence)
         elif isinstance(sentence, str):
-            if self.child_sentences == None:
-                self.child_sentences = [Sentence(sentence, self)]
-            else:
-                self.child_sentences.append(Sentence(sentence, self))
+            self.child_sentences.append(Sentence(sentence, self))
         else:
             raise ValueError("Unexpected sentence type")
 
@@ -27,7 +21,7 @@ class Sentence():
         self.child_sentences.remove(sentence)
         
     def get_all_deep(self):
-        if self.child_sentences == None or len(self.child_sentences) == 0:
+        if len(self.child_sentences) == 0:
             return [self]
         out = [self]
         for sent in self.child_sentences:
@@ -183,28 +177,39 @@ class JavaComp():
 
 
 
-    def _remove_non_path_scopes(root, paths: list):
+    def _remove_non_path_scopes(root: Sentence, paths: list):
         can_be_removed = dict()
         for sent in root.get_all_deep():
             can_be_removed[sent] = True
-        
+
         for path in paths:
             prev_node = root
             can_be_removed[root] = False
             for idx in path:
                 prev_node = prev_node.child_sentences[idx]
                 can_be_removed[prev_node] = False
-        
+                
+
+
         def recursive_remove(root, can_be_removed):
             if root.child_sentences == None:
                 return
             
-            for node in root.child_sentences:
-                if can_be_removed[node]:
-                    root.remove_child(node)
-                else:
-                    recursive_remove(node, can_be_removed)
+            done = False
+            while not done:
+                done = True
+                for node in root.child_sentences:
+                    if can_be_removed[node]:
+                        root.remove_child(node)
+                        done = False
+                        break
+                    else:
+                        recursive_remove(node, can_be_removed)
 
         recursive_remove(root, can_be_removed)
+        
+
+
+
 
         return root
