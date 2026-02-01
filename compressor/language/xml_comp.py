@@ -29,7 +29,7 @@ class XMLComp():
         original_root = ET.fromstring(file_content)
 
         out = XMLComp._remove_non_path_els(original_root, paths)
-        return ET.tostring(out, method="xml").decode()
+        return XMLComp._ET_to_string(out)
 
         
     def _tree_search_path(root, target_tag):
@@ -77,3 +77,33 @@ class XMLComp():
         out = copy.deepcopy(root)
         helper(root, out, paths, 0)
         return out
+
+
+    def _ET_to_string(element, indent="    "):
+
+        def strip_ns(s):
+            if '}' in s:
+                return s.split('}')[-1]
+            return s
+        
+        def helper(element, indent, depth=0):
+            tag = strip_ns(element.tag)
+
+            attribs = []
+            for k, v in element.attrib.items():
+                attribs.append(f' {strip_ns(k)}="{v}"')
+            attrib_str = ''.join(attribs)
+            
+            open_scope_tag = f'<{tag}{attrib_str}>'
+            close_scope_tag = f'</{tag}>'
+
+            scope_content = []
+            for child in element:
+                scope_content.append(f'{indent * (depth + 1)}{helper(child, indent, depth + 1)}')
+            
+            if element.text and element.text.strip():
+                scope_content.append(f'{indent * (depth + 1)}{element.text}')
+            
+            return f"{open_scope_tag}\n{''.join(scope_content)}\n{indent * depth}{close_scope_tag}"
+
+        return helper(element, indent)

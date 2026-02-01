@@ -7,7 +7,7 @@ from compressor.main_comp import MainComp
 
 
 
-N = 2
+N = 1000
 
 
 if len(sys.argv) != 2:
@@ -32,9 +32,13 @@ git_log = subprocess.check_output(
 git_log = git_log.decode("utf-8").replace('"', "").split("\n")
 
 
+print("logs:",len(git_log))
+
+
 git_log = git_log[0:N]
 
-target_commit = 0
+#target_commit = 2
+target_commit = 4
 
 diff = get_diff(repo, git_log[target_commit])
 
@@ -44,7 +48,7 @@ diffParser = DiffParser(repo, diff)
 parsed_diff = diffParser.parse()
 
 
-
+print("hash:", git_log[target_commit])
 for file in parsed_diff.keys():
     print(f" --------  {file}  ---------- ")
 
