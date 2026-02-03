@@ -61,7 +61,7 @@ class JavaComp():
 
     def _parse_java(file_content, changed_line):
 
-        in_comment = False  # TODO: to be implemented
+        in_comment = False
         in_str = False
         current_sentece = ""
 
@@ -111,6 +111,10 @@ class JavaComp():
                     break
 
                 if not in_comment:
+
+
+                    if is_sub_str_at(line, "//", idx):
+                        break
 
                     if c != "}" or in_str:
                         current_sentece += c
