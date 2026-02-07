@@ -63,6 +63,9 @@ class JavaComp():
 
         in_comment = False
         in_str = False
+        in_assign = False
+        in_params = False
+
         current_sentece = ""
 
         root_sentence = Sentence(None, None)
@@ -125,7 +128,7 @@ class JavaComp():
 
 
                     if not in_str:
-                        if c == "{":
+                        if c == "{" and not in_assign and not in_params:
                             new_sentence = Sentence(current_sentece + "\n", current_parent_sentence)
                             current_parent_sentence.add_child(new_sentence)
                             current_parent_sentence = new_sentence
@@ -141,27 +144,34 @@ class JavaComp():
 
                             current_sentece = ""
                         elif c == "}":
-
-                            space_count = find_first_non_space(current_parent_sentence.value)
-                            spaces = ""
-                            for _ in range(space_count):
-                                spaces += " "
-
-                            current_parent_sentence.add_child(spaces + "}\n")  # note it is still included in the parent sentence
-                            current_parent_sentence = current_parent_sentence.parent
-                        
-                            sentence_idx += 1
-                            if current_sentence_is_changed:
-                                full_path = []
-                                full_path.extend(current_path)
-                                full_path.append(sentence_idx)
-                                changed_sentence_paths.append(full_path)
-                                current_sentence_is_changed = False
                             
-                            sentence_idx = current_path.pop()
+                            if not in_assign and not in_params:
+
+                                space_count = find_first_non_space(current_parent_sentence.value)
+                                spaces = ""
+                                for _ in range(space_count):
+                                    spaces += " "
+
+                                current_parent_sentence.add_child(spaces + "}\n")  # note it is still included in the parent sentence
+                                current_parent_sentence = current_parent_sentence.parent
                             
+                                sentence_idx += 1
+                                if current_sentence_is_changed:
+                                    full_path = []
+                                    full_path.extend(current_path)
+                                    full_path.append(sentence_idx)
+                                    changed_sentence_paths.append(full_path)
+                                    current_sentence_is_changed = False
+                                
+                                sentence_idx = current_path.pop()
+                            
+                            else:
+                                current_sentece += c
 
                         elif c == ";":
+                            in_assign = False
+                            in_params = False
+
                             current_parent_sentence.add_child(current_sentece + "\n")
                             current_sentece = ""
 
@@ -174,6 +184,15 @@ class JavaComp():
                                 changed_sentence_paths.append(full_path)
                                 current_sentence_is_changed = False
 
+                        elif c == "=":
+                            in_assign = True
+                        
+                        elif c == "(":
+                            in_params = True
+
+                        elif c == ")":
+                            in_assign = False
+                            in_params = False
                             
             if len(current_sentece) > 0 and current_sentece[-1] != "\n":
                 current_sentece += "\n"
