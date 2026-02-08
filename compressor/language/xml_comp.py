@@ -23,7 +23,10 @@ class XMLComp():
                 new_file_content += line + "\n"
 
             root = ET.fromstring(new_file_content)
-            paths.append(XMLComp._tree_search_path(root, "findme"))
+            found_path = XMLComp._tree_search_path(root, "findme")
+
+            if found_path != None:  # can be None if the findme is placed inside a comment -> but this can just be ignored since we are not intrested in comments
+                paths.append(found_path)
 
 
         original_root = ET.fromstring(file_content)
