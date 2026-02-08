@@ -162,7 +162,8 @@ class DiffParser():
         out = set()
 
         # check for all lines that start with "+++ " or "--- "
-        pattern = r'^(---|\+\+\+)\s.*$'
+        #pattern = r'^(---|\+\+\+)\s.*$'
+        pattern = r'^(\+\+\+)\s.*$'
 
 
         lines = diff.split("\n")
@@ -175,3 +176,5 @@ class DiffParser():
                     out.add(file_path)
 
         return out
+
+

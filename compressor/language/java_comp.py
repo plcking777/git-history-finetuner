@@ -64,7 +64,7 @@ class JavaComp():
         in_comment = False
         in_str = False
         in_assign = False
-        in_params = False
+        open_params = 0
 
         current_sentece = ""
 
@@ -128,7 +128,7 @@ class JavaComp():
 
 
                     if not in_str:
-                        if c == "{" and not in_assign and not in_params:
+                        if c == "{" and not in_assign and open_params == 0:
                             new_sentence = Sentence(current_sentece + "\n", current_parent_sentence)
                             current_parent_sentence.add_child(new_sentence)
                             current_parent_sentence = new_sentence
@@ -145,7 +145,10 @@ class JavaComp():
                             current_sentece = ""
                         elif c == "}":
                             
-                            if not in_assign and not in_params:
+                            if not in_assign and open_params == 0:
+
+                                if current_parent_sentence.value == None:
+                                    print("error: ", line_idx)
 
                                 space_count = find_first_non_space(current_parent_sentence.value)
                                 spaces = ""
@@ -170,7 +173,7 @@ class JavaComp():
 
                         elif c == ";":
                             in_assign = False
-                            in_params = False
+                            open_params = 0
 
                             current_parent_sentence.add_child(current_sentece + "\n")
                             current_sentece = ""
@@ -188,11 +191,11 @@ class JavaComp():
                             in_assign = True
                         
                         elif c == "(":
-                            in_params = True
+                            open_params += 1
 
                         elif c == ")":
                             in_assign = False
-                            in_params = False
+                            open_params -= 1
                             
             if len(current_sentece) > 0 and current_sentece[-1] != "\n":
                 current_sentece += "\n"
