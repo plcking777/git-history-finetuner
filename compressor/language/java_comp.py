@@ -115,19 +115,20 @@ class JavaComp():
 
                 if not in_comment:
 
-
-                    if is_sub_str_at(line, "//", idx):
-                        break
-
                     if c != "}" or in_str:
                         current_sentece += c
 
-                    if c == "\"" or c ==  "'":
+                    if c == "\"" or c ==  "'" and (idx == 0 or line[idx - 1] == "\\"):
                         in_str = not in_str
                         continue
 
 
                     if not in_str:
+
+                        if is_sub_str_at(line, "//", idx):
+                            break
+
+
                         if c == "{" and not in_assign and open_params == 0:
                             new_sentence = Sentence(current_sentece + "\n", current_parent_sentence)
                             current_parent_sentence.add_child(new_sentence)
@@ -146,9 +147,6 @@ class JavaComp():
                         elif c == "}":
                             
                             if not in_assign and open_params == 0:
-
-                                if current_parent_sentence.value == None:
-                                    print("error: ", line_idx)
 
                                 space_count = find_first_non_space(current_parent_sentence.value)
                                 spaces = ""
@@ -187,7 +185,7 @@ class JavaComp():
                                 changed_sentence_paths.append(full_path)
                                 current_sentence_is_changed = False
 
-                        elif c == "=":
+                        elif open_params == 0 and c == "=" and not is_sub_str_at(line, "==", idx) and not is_sub_str_at(line, "==", idx - 1):
                             in_assign = True
                         
                         elif c == "(":
