@@ -14,12 +14,23 @@ class XMLComp():
         lines = file_content.split("\n")
         paths = []
 
-        for line_nr in parsed_diff[file_path]["added"]:
+        added_lines = parsed_diff[file_path]["added"]
+
+
+
+        # if the first line is added just return the full file content
+        if 1 in added_lines:
+            return file_content
+
+        for line_nr in added_lines:
             new_file_content = ""
             for idx in range(len(lines)):
                 line = lines[idx]
                 if idx + 1 == line_nr:
-                    new_file_content += f"<findme findme=\"findme\" />" + "\n"
+                    if XMLComp._is_line_in_element_def(file_content, line_nr):
+                        pass  # TODO maybe add an attribute instead ?
+                    else:
+                        new_file_content += f"<findme findme=\"findme\" />" + "\n"
                 new_file_content += line + "\n"
 
             root = ET.fromstring(new_file_content)
@@ -110,3 +121,70 @@ class XMLComp():
             return f"{open_scope_tag}\n{''.join(scope_content)}\n{indent * depth}{close_scope_tag}"
 
         return helper(element, indent)
+
+
+    def _is_line_in_element_def(file_content, line_nr):
+
+        in_str_single = False  # '
+        in_str_double = False  # "
+        in_comment = False
+
+        in_elem_def = False
+
+        def is_sub_str_at(str, sub, idx):
+            l = len(sub)
+
+            if len(str) < idx + l:
+                return False
+
+            return str[idx:idx + l] == sub
+
+        lines = file_content.split("\n")
+        for line_idx in range(len(lines)):
+            line = lines[line_idx]
+
+
+
+            if line_idx + 1 == line_nr:
+                return in_elem_def
+
+            idx = 0
+            while idx < len(line):
+                
+                c = line[idx]
+
+
+                if c == "'" and not in_str_double and not in_comment:
+                    in_str_single = not in_str_single
+                
+                elif c == '"' and not in_str_single and not in_comment:
+                    in_str_double = not in_str_double
+                
+
+                elif is_sub_str_at(line, "<!--", idx) and not (in_str_single or in_str_double) and not in_comment:
+                    idx += len("<!--")
+                    in_comment = True
+                    continue
+
+                elif is_sub_str_at(line, "-->", idx) and not (in_str_single or in_str_double) and in_comment:
+                    idx += len("-->")
+                    in_comment = False
+                    continue
+
+                elif c == '<' and not (in_str_single or in_str_double) and not in_comment and not in_elem_def:
+                    in_elem_def = True
+                
+                elif c == '>' and not (in_str_single or in_str_double) and not in_comment and in_elem_def:
+                    in_elem_def = False
+                
+
+                idx += 1
+        return False
+        
+
+    
+
+
+                
+
+
