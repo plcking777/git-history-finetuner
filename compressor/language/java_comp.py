@@ -64,6 +64,7 @@ class JavaComp():
         in_comment = False
         in_str = False
         in_assign = False
+        in_assign_open_brackets = 0
         open_params = 0
 
         current_sentece = ""
@@ -129,22 +130,31 @@ class JavaComp():
                             break
 
 
-                        if c == "{" and not in_assign and open_params == 0:
-                            new_sentence = Sentence(current_sentece + "\n", current_parent_sentence)
-                            current_parent_sentence.add_child(new_sentence)
-                            current_parent_sentence = new_sentence
+                        if c == "{":
 
-                            sentence_idx += 1
-                            current_path.append(sentence_idx)
-                            if current_sentence_is_changed:
-                                full_path = []
-                                full_path.extend(current_path)
-                                changed_sentence_paths.append(full_path)
-                                current_sentence_is_changed = False
-                            sentence_idx = -1
+                            if in_assign:
+                                in_assign_open_brackets += 1
+                            
+                            if not in_assign and open_params == 0:
 
-                            current_sentece = ""
+                                new_sentence = Sentence(current_sentece + "\n", current_parent_sentence)
+                                current_parent_sentence.add_child(new_sentence)
+                                current_parent_sentence = new_sentence
+
+                                sentence_idx += 1
+                                current_path.append(sentence_idx)
+                                if current_sentence_is_changed:
+                                    full_path = []
+                                    full_path.extend(current_path)
+                                    changed_sentence_paths.append(full_path)
+                                    current_sentence_is_changed = False
+                                sentence_idx = -1
+
+                                current_sentece = ""
                         elif c == "}":
+
+                            if in_assign:
+                                in_assign_open_brackets -= 1
                             
                             if not in_assign and open_params == 0:
 
@@ -169,9 +179,8 @@ class JavaComp():
                             else:
                                 current_sentece += c
 
-                        elif c == ";":
+                        elif c == ";" and (not in_assign or in_assign_open_brackets == 0):
                             in_assign = False
-                            open_params = 0
 
                             current_parent_sentence.add_child(current_sentece + "\n")
                             current_sentece = ""
@@ -192,7 +201,6 @@ class JavaComp():
                             open_params += 1
 
                         elif c == ")":
-                            in_assign = False
                             open_params -= 1
                             
             if len(current_sentece) > 0 and current_sentece[-1] != "\n":
