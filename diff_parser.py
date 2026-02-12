@@ -67,13 +67,14 @@ class DiffParser():
                 c = line[idx]
 
                 if read_current:
-                    if c == ',':
+                    # ' ' in case that there is no second value provided eg. "@@ -0,0 +1 @@"
+                    if c == ',' or c == ' ':
                         break
                     else:
                         current_line_nr += c
 
                 if read_prev:
-                    if c == ',':
+                    if c == ',' or c == ' ':
                         read_prev = False
                     else:
                         prev_line_nr += c
