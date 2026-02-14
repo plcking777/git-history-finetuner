@@ -33,15 +33,24 @@ class XMLComp():
                         new_file_content += f"<findme findme=\"findme\" />" + "\n"
                 new_file_content += line + "\n"
 
-            root = ET.fromstring(new_file_content)
-            found_path = XMLComp._tree_search_path(root, "findme")
+
+            try:
+                root = ET.fromstring(new_file_content)
+                found_path = XMLComp._tree_search_path(root, "findme")
+            except:
+                # if the ET.fromstring fails, the change probably did something "weird" like add a line outside of the root XML component
+                # typically a comment => so it just ignored since it is too complex
+                found_path = None
 
             if found_path != None:  # can be None if the findme is placed inside a comment -> but this can just be ignored since we are not intrested in comments
                 paths.append(found_path)
 
 
-        original_root = ET.fromstring(file_content)
-
+        try:
+            original_root = ET.fromstring(file_content)
+        except:
+            return file_content
+        
         out = XMLComp._remove_non_path_els(original_root, paths)
         return XMLComp._ET_to_string(out)
 

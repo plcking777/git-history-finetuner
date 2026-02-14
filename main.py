@@ -8,7 +8,7 @@ from compressor.main_comp import MainComp
 
 
 
-N = 5
+N = 5000
 
 
 if len(sys.argv) != 2:
