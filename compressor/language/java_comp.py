@@ -63,6 +63,7 @@ class JavaComp():
 
         in_comment = False
         in_str = False
+        in_char = False
         in_assign = False
         in_assign_open_brackets = 0
         open_params = 0
@@ -106,9 +107,10 @@ class JavaComp():
         
                 c = line[idx]
 
-                if not in_str and is_sub_str_at(line, "/*", idx):
+
+                if not in_str and not in_char and is_sub_str_at(line, "/*", idx):
                     in_comment = True
-                if not in_str and is_sub_str_at(line, "*/", idx):
+                if not in_str and not in_char and is_sub_str_at(line, "*/", idx):
                     if not in_comment:
                         raise Exception("Found '*/' while not in a string or comment")
                     in_comment = False
@@ -116,15 +118,19 @@ class JavaComp():
 
                 if not in_comment:
 
-                    if c != "}" or in_str:
+                    if c != "}" or in_str or in_char:
                         current_sentece += c
 
-                    if c == "\"" or c ==  "'" and (idx == 0 or line[idx - 1] == "\\"):
+                    if c == "\"" and not in_char and (idx == 0 or line[idx - 1] != "\\"):
                         in_str = not in_str
                         continue
 
+                    if c == "'" and not in_str and (idx == 0 or line[idx - 1] != "\\"):
+                        in_char = not in_char
+                        continue
 
-                    if not in_str:
+
+                    if not in_str and not in_char:
 
                         if is_sub_str_at(line, "//", idx):
                             break
@@ -136,6 +142,8 @@ class JavaComp():
                                 in_assign_open_brackets += 1
                             
                             if not in_assign and open_params == 0:
+
+                                #print("open: ", line_idx)
 
                                 new_sentence = Sentence(current_sentece + "\n", current_parent_sentence)
                                 current_parent_sentence.add_child(new_sentence)
@@ -157,6 +165,11 @@ class JavaComp():
                                 in_assign_open_brackets -= 1
                             
                             if not in_assign and open_params == 0:
+
+                                #print("close: ", line_idx)
+
+                                if current_parent_sentence.value == None:
+                                    print("error: ", line_idx)
 
                                 space_count = find_first_non_space(current_parent_sentence.value)
                                 spaces = ""
